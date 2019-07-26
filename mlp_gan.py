@@ -1,9 +1,11 @@
+#%%
+from __future__ import print_function, division
 import sys
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 import pickle
 import glob
-from __future__ import print_function, division
 from music21 import converter, instrument, note, chord, stream
 from keras.layers import Input, Dense, Reshape, Dropout, CuDNNLSTM, Bidirectional
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
@@ -12,6 +14,7 @@ from keras.models import Sequential, Model
 from keras.optimizers import Adam
 from keras.utils import np_utils
 
+#%%
 def get_notes():
     """ Get all the notes and chords from the midi files """
     notes = []
@@ -37,6 +40,7 @@ def get_notes():
 
     return notes
 
+#%%
 def prepare_sequences(notes, n_vocab):
     """ Prepare the sequences used by the Neural Network """
     sequence_length = 100
@@ -68,35 +72,7 @@ def prepare_sequences(notes, n_vocab):
 
     return (network_input, network_output)
 
-def generate_notes(model, network_input, n_vocab):
-    """ Generate notes from the neural network based on a sequence of notes """
-    # pick a random sequence from the input as a starting point for the prediction
-    start = numpy.random.randint(0, len(network_input)-1)
-    
-    # Get pitch names and store in a dictionary
-    pitchnames = sorted(set(item for item in notes))
-    int_to_note = dict((number, note) for number, note in enumerate(pitchnames))
-
-    pattern = network_input[start]
-    prediction_output = []
-
-    # generate 500 notes
-    for note_index in range(500):
-        prediction_input = numpy.reshape(pattern, (1, len(pattern), 1))
-        prediction_input = prediction_input / float(n_vocab)
-
-        prediction = model.predict(prediction_input, verbose=0)
-
-        index = numpy.argmax(prediction)
-        result = int_to_note[index]
-        prediction_output.append(result)
-        
-        pattern = numpy.append(pattern,index)
-        #pattern.append(index)
-        pattern = pattern[1:len(pattern)]
-
-    return prediction_output
-  
+#%%
 def create_midi(prediction_output, filename):
     """ convert the output from the prediction to notes and create a midi file
         from the notes """
@@ -130,6 +106,7 @@ def create_midi(prediction_output, filename):
     midi_stream = stream.Stream(output_notes)
     midi_stream.write('midi', fp='{}.mid'.format(filename))
 
+#%%
 class GAN():
     def __init__(self, rows):
         self.seq_length = rows
@@ -272,6 +249,7 @@ class GAN():
         plt.savefig('GAN_Loss_per_Epoch_final.png', transparent=True)
         plt.close()
 
+#%%
 if __name__ == '__main__':
-  gan = GAN(rows=100)    
-  gan.train(epochs=5000, batch_size=32, sample_interval=1)
+    gan = GAN(rows=100)
+    gan.train(epochs=5000, batch_size=32, sample_interval=1)

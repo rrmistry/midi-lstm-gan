@@ -1,7 +1,8 @@
-% pylab inline
+#%%
 import glob
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from music21 import converter, instrument, note, chord, stream
 from keras.models import Sequential
 from keras.models import load_model
@@ -12,6 +13,7 @@ from keras.layers import Activation
 from keras.utils import np_utils
 from keras.callbacks import ModelCheckpoint, History
 
+#%%
 def train_network():
     """ Train a Neural Network to generate music """
     # Get notes from midi files
@@ -41,7 +43,8 @@ def train_network():
     pd.DataFrame(history.history).plot()
     plt.savefig('LSTM_Loss_per_Epoch.png', transparent=True)
     plt.close()
-    
+
+#%%
 def get_notes():
     """ Get all the notes and chords from the midi files """
     notes = []
@@ -66,7 +69,8 @@ def get_notes():
                 notes.append('.'.join(str(n) for n in element.normalOrder))
 
     return notes
-  
+
+#%%
 def prepare_sequences(notes, n_vocab):
     """ Prepare the sequences used by the Neural Network """
     sequence_length = 100
@@ -97,7 +101,8 @@ def prepare_sequences(notes, n_vocab):
     network_output = np_utils.to_categorical(network_output)
 
     return (network_input, network_output)
-  
+
+#%%
 def create_network(network_input, n_vocab):
     """ create the structure of the neural network """
     model = Sequential()
@@ -113,7 +118,8 @@ def create_network(network_input, n_vocab):
     model.compile(loss='categorical_crossentropy', optimizer='adam')
 
     return model
-    
+
+#%%
 def generate_notes(model, notes, network_input, n_vocab):
     """ Generate notes from the neural network based on a sequence of notes """
     # pick a random sequence from the input as a starting point for the prediction
@@ -141,7 +147,8 @@ def generate_notes(model, notes, network_input, n_vocab):
         pattern = pattern[1:len(pattern)]
 
     return prediction_output
-  
+
+#%%
 def create_midi(prediction_output, filename):
     """ convert the output from the prediction to notes and create a midi file
         from the notes """
@@ -172,6 +179,7 @@ def create_midi(prediction_output, filename):
 
     midi_stream = stream.Stream(output_notes)
     midi_stream.write('midi', fp='{}.mid'.format(filename))
-    
+
+#%%
 if __name__ == '__main__':
     train_network()
